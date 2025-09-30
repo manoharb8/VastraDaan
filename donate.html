@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make a Donation - Vastradaan</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/donate.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+             <svg width="30" height="30" viewBox="0 0 24 24"><path fill="#2ecc71" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+            <span>Vastradaan</span>
+        </div>
+        <nav class="main-nav">
+            <a href="dashboard.html" class="nav-link">Home</a>
+            <a href="track.html" class="nav-link">Track</a>
+            <a href="refer.html" class="nav-link">Refer & Earn</a>
+            <a href="helpline.html" class="nav-link">Helpline</a>
+        </nav>
+        <div class="header-right">
+            <button id="logout-btn" class="join-now-btn">Logout</button>
+            <button class="hamburger-menu" id="hamburger-menu"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+
+    <main class="content-area">
+        <div class="form-container">
+            <h2>Make a Donation</h2>
+            <p>Your generosity helps us provide for those in need. Please fill out the details below.</p>
+            <form id="donation-form">
+                <label for="donation-items">What items are you donating?</label>
+                <input type="text" id="donation-items" placeholder="e.g., 2 Shirts, 1 Pair of Jeans" required>
+
+                <label for="donation-condition">What is the condition of the items?</label>
+                <select id="donation-condition" required>
+                    <option value="" disabled selected>Select Item Condition</option>
+                    <option value="new">New (with tags)</option>
+                    <option value="good">Good (gently used)</option>
+                    <option value="fair">Fair (visibly used)</option>
+                </select>
+                <div id="condition-feedback" class="condition-feedback"></div>
+
+                <label for="pickup-date">Preferred Pickup Date</label>
+                <input type="date" id="pickup-date" required>
+
+                <label for="pickup-slot">Preferred Time Slot</label>
+                <select id="pickup-slot" required>
+                    <option value="" disabled selected>Select a Time Slot</option>
+                    <option value="Morning">Morning (9am - 12pm)</option>
+                    <option value="Afternoon">Afternoon (1pm - 5pm)</option>
+                </select>
+                
+                <button type="submit" class="action-btn">Schedule Pickup</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="js/donate.js"></script>
+</body>
+</html>
