@@ -15,7 +15,12 @@ const GOOGLE_CLIENT_ID = "853516383345-4p5d3upi7u7lakahao0htv2bpe762fgl.apps.goo
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // --- Middleware ---
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+  methods: ["GET", "POST"],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -118,46 +123,50 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Submit a new donation
-app.post('/api/donations', (req, res) => {
-    const { phone, items, condition, pickupDate, pickupSlot } = req.body;
-    if (!phone || !items || !condition || !pickupDate || !pickupSlot) {
-        return res.status(400).json({ success: false, message: 'Missing all required donation details.' });
+// In your server.js file...
+
+// This is an example. Adapt it to your existing code.
+app.post('/api/donations', async (req, res) => {
+    const { phone, items, condition, quantity, pickupDate, pickupSlot, earnings } = req.body;
+
+    // --- THIS IS THE NEW LOGIC YOU MUST ADD ---
+    try {
+        // 1. Find the user in your database using their phone number
+        const user = await db.collection('users').findOne({ phone: phone });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // 2. Calculate the new total earnings
+        const currentEarnings = user.earnings || 0;
+        const newTotalEarnings = currentEarnings + earnings;
+
+        // 3. Update the user's record in the database with the new total
+        await db.collection('users').updateOne(
+            { phone: phone },
+            { $set: { earnings: newTotalEarnings } }
+        );
+
+        // 4. Save the new donation to the donations collection (your existing logic)
+        const newDonation = {
+            // ... your donation fields ...
+            status: 'Pending'
+        };
+        const donationResult = await db.collection('donations').insertOne(newDonation);
+
+        // 5. Send a success response WITH the new total earnings
+        res.status(201).json({ 
+            success: true, 
+            message: 'Donation scheduled and earnings updated!',
+            donationId: donationResult.insertedId,
+            newTotalEarnings: newTotalEarnings // <-- This is crucial
+        });
+
+    } catch (error) {
+        console.error('Error processing donation:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
     }
-    const sql = `INSERT INTO donations (phone, items, condition, pickup_date, pickup_slot) VALUES (?, ?, ?, ?, ?)`;
-    db.run(sql, [phone, items, condition, pickupDate, pickupSlot], function(err) {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: 'Failed to record donation.' });
-        }
-        res.status(201).json({ success: true, message: 'Donation recorded successfully.', donationId: this.lastID });
-    });
-});
-
-// Get donation history for a specific user
-app.get('/api/donations/user/:phone', (req, res) => {
-    const { phone } = req.params;
-    const sql = `SELECT * FROM donations WHERE phone = ? ORDER BY timestamp DESC`;
-    db.all(sql, [phone], (err, rows) => {
-        if (err) { return res.status(500).json({ success: false, message: 'Database error.' }); }
-        res.json({ success: true, donations: rows });
-    });
-});
-
-// NEW: Get details for a single donation (for the receipt page)
-app.get('/api/donations/:id', (req, res) => {
-    const { id } = req.params;
-    const sql = `SELECT * FROM donations WHERE id = ?`;
-    db.get(sql, [id], (err, row) => {
-        if (err) {
-            return res.status(500).json({ success: false, message: 'Database error.' });
-        }
-        if (row) {
-            res.json({ success: true, donation: row });
-        } else {
-            res.status(404).json({ success: false, message: 'Donation not found.' });
-        }
-    });
 });
 
 // Get mocked tracking info for a donation
